@@ -1,10 +1,15 @@
-[gd_scene load_steps=4 format=4 uid="uid://dfuutgfglne6l"]
+[gd_scene load_steps=8 format=4 uid="uid://dfuutgfglne6l"]
 
 [ext_resource type="PackedScene" uid="uid://bmr3y21j8mc8b" path="res://scenes/board.tscn" id="1_iea4b"]
+[ext_resource type="Script" uid="uid://dg61twibheqln" path="res://scenes/chess_engine.gd" id="1_mc8d8"]
 [ext_resource type="Texture2D" uid="uid://dnsvklgt61lcy" path="res://assets/Markers.svg" id="2_o4g7e"]
-[ext_resource type="PackedScene" uid="uid://b2grq172gg2b0" path="res://scenes/chess_pieces.tscn" id="2_xegwo"]
+[ext_resource type="PackedScene" uid="uid://b2grq172gg2b0" path="res://scenes/chess_tile.tscn" id="2_xegwo"]
+[ext_resource type="Script" uid="uid://cab0nl2hwmd1s" path="res://scenes/chess_tile.gd" id="5_2j0vo"]
+[ext_resource type="PackedScene" uid="uid://bv56ueu58kve5" path="res://scenes/pieces.tscn" id="6_rommo"]
+[ext_resource type="Script" uid="uid://cnywm3f107tf7" path="res://scenes/pieces.gd" id="7_2j0vo"]
 
 [node name="Chess-Engine" type="Node2D"]
+script = ExtResource("1_mc8d8")
 
 [node name="Board" parent="." instance=ExtResource("1_iea4b")]
 tile_map_data = PackedByteArray("AAAAAAAAAQAAAAAAAAA=")
@@ -15,10 +20,15 @@ offset_bottom = 576.0
 texture = ExtResource("2_o4g7e")
 
 [node name="Highlights" parent="." instance=ExtResource("2_xegwo")]
-tile_map_data = PackedByteArray("AAAAAAAAAgAAAAEAAAABAAAAAgAAAAIAAAACAAAAAgAAAAMAAAADAAAAAgAAAAQAAAAEAAAAAgAAAAUAAAAFAAAAAgAAAAMAAAAHAAAAAgAAAAEAAAAGAAAAAgAAAAIAAAAHAAcAAgABAAEAAAAGAAcAAgABAAIAAAAFAAcAAgABAAMAAAAEAAcAAgABAAUAAAAAAAcAAgABAAEAAAABAAcAAgABAAIAAAACAAcAAgABAAMAAAADAAcAAgABAAQAAAAHAAYAAgABAAAAAAAAAAYAAgABAAAAAAABAAYAAgABAAAAAAACAAYAAgABAAAAAAADAAYAAgABAAAAAAAFAAYAAgABAAAAAAAGAAYAAgABAAAAAAA=")
+tile_map_data = PackedByteArray()
 
 [node name="ChessPieces" parent="." instance=ExtResource("2_xegwo")]
-tile_map_data = PackedByteArray("AAAAAAAAAgAAAAEAAAABAAAAAgAAAAIAAAACAAAAAgAAAAMAAAADAAAAAgAAAAQAAAAEAAAAAgAAAAUAAAAFAAAAAgAAAAMAAAAHAAAAAgAAAAEAAAAGAAAAAgAAAAIAAAAHAAcAAgABAAEAAAAGAAcAAgABAAIAAAAFAAcAAgABAAMAAAAEAAcAAgABAAUAAAAAAAcAAgABAAEAAAABAAcAAgABAAIAAAACAAcAAgABAAMAAAADAAcAAgABAAQAAAAHAAYAAgABAAAAAAAAAAYAAgABAAAAAAABAAYAAgABAAAAAAACAAYAAgABAAAAAAADAAYAAgABAAAAAAAFAAYAAgABAAAAAAAGAAYAAgABAAAAAAAHAAEAAgAAAAAAAAAGAAEAAgAAAAAAAAAFAAEAAgAAAAAAAAAEAAEAAgAAAAAAAAADAAEAAgAAAAAAAAACAAEAAgAAAAAAAAABAAEAAgAAAAAAAAAAAAEAAgAAAAAAAAAEAAYAAgABAAAAAAA=")
+tile_map_data = PackedByteArray("AAAAAAAAAgAAAAEAAAABAAAAAgAAAAIAAAACAAAAAgAAAAMAAAADAAAAAgAAAAQAAAAEAAAAAgAAAAUAAAAFAAAAAgAAAAMAAAAHAAAAAgAAAAEAAAAGAAAAAgAAAAIAAAAHAAcAAgABAAEAAAAAAAcAAgABAAEAAAAEAAcAAgABAAUAAAADAAcAAgABAAQAAAAFAAcAAgABAAMAAAACAAcAAgABAAMAAAAGAAcAAgABAAIAAAABAAcAAgABAAIAAAAHAAYAAgABAAAAAAAGAAYAAgABAAAAAAAFAAYAAgABAAAAAAAEAAYAAgABAAAAAAADAAYAAgABAAAAAAACAAYAAgABAAAAAAABAAYAAgABAAAAAAAAAAYAAgABAAAAAAAHAAEAAgAAAAAAAAAGAAEAAgAAAAAAAAAFAAEAAgAAAAAAAAAEAAEAAgAAAAAAAAADAAEAAgAAAAAAAAACAAEAAgAAAAAAAAABAAEAAgAAAAAAAAAAAAEAAgAAAAAAAAA=")
+script = ExtResource("5_2j0vo")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(288, 288)
+
+[node name="Pieces" parent="." instance=ExtResource("6_rommo")]
+visible = false
+script = ExtResource("7_2j0vo")
