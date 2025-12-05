@@ -57,11 +57,13 @@ Array ChessBoard::get_valid_moves()
     Array chessmove_list;
     generate_moves();
 
+    chessmove_list.append_array(generate_attack_list(Board.pawns & Board.white_pieces, WPawn));
     chessmove_list.append_array(generate_attack_list(Board.rooks & Board.white_pieces, WRook));
     chessmove_list.append_array(generate_attack_list(Board.knights & Board.white_pieces, WKnight));
     chessmove_list.append_array(generate_attack_list(Board.bishops & Board.white_pieces, WBishop));
     chessmove_list.append_array(generate_attack_list(Board.queens & Board.white_pieces, WQueen));
     chessmove_list.append_array(generate_attack_list(Board.kings & Board.white_pieces, WKing));
+    chessmove_list.append_array(generate_attack_list(Board.pawns & Board.black_pieces, BPawn));
     chessmove_list.append_array(generate_attack_list(Board.rooks & Board.black_pieces, BRook));
     chessmove_list.append_array(generate_attack_list(Board.knights & Board.black_pieces, BKnight));
     chessmove_list.append_array(generate_attack_list(Board.bishops & Board.black_pieces, BBishop));
@@ -146,11 +148,13 @@ void ChessBoard::generate_moves()
         }
     };
     
+    generate_attack_mask(Board.pawns, Board.white_pieces, WPawn, [this](int square_index) {return generate_wpawn_movement(square_index);});
     generate_attack_mask(Board.rooks, Board.white_pieces, WRook, [this](int square_index) {return generate_rook_movement(square_index);});
     generate_attack_mask(Board.knights, Board.white_pieces, WKnight, [this](int square_index) {return generate_knight_movement(square_index);});
     generate_attack_mask(Board.bishops, Board.white_pieces, WBishop, [this](int square_index) {return generate_bishop_movement(square_index);});
     generate_attack_mask(Board.queens, Board.white_pieces, WQueen, [this](int square_index) {return generate_queen_movement(square_index);});
     generate_attack_mask(Board.kings, Board.white_pieces, WKing, [this](int square_index) {return generate_king_movement(square_index);});
+    generate_attack_mask(Board.pawns, Board.black_pieces, BPawn, [this](int square_index) {return generate_bpawn_movement(square_index);});
     generate_attack_mask(Board.rooks, Board.black_pieces, BRook, [this](int square_index) {return generate_rook_movement(square_index);});
     generate_attack_mask(Board.knights, Board.black_pieces, BKnight, [this](int square_index) {return generate_knight_movement(square_index);});
     generate_attack_mask(Board.bishops, Board.black_pieces, BBishop, [this](int square_index) {return generate_bishop_movement(square_index);});
@@ -158,9 +162,6 @@ void ChessBoard::generate_moves()
     generate_attack_mask(Board.kings, Board.black_pieces, BKing, [this](int square_index) {return generate_king_movement(square_index);});
        
 }
-
-
-
 
 uint64_t ChessBoard::generate_h_quintessence(int square_index, uint64_t mask) // Stollen from https://www.chessprogramming.org/Hyperbola_Quintessence
 {
@@ -174,11 +175,18 @@ uint64_t ChessBoard::generate_h_quintessence(int square_index, uint64_t mask) //
    return forward;
 }
 
-
-// uint64_t ChessBoard::generate_pawn_movement(int index)
-// {
-    
-// }
+uint64_t ChessBoard::generate_wpawn_movement(int square_index)
+{
+    pair rankfile_index = index_to_rankfile(square_index);
+    uint64_t pawn_attack = (1ULL << ((!(rankfile_index.first == 7 || rankfile_index.second == 7)) ? square_index + 9 : square_index)) | (1ULL << ((!(rankfile_index.first == 7 || rankfile_index.second == 7)) ? square_index + 9 : square_index)) & (Board.white_pieces | Board.black_pieces);
+    uint64_t pawn_movement = (1ULL << max(square_index, square_index + 8) | ((rankfile_index.second == 1) ?  1ULL << (square_index + 16) : 0ULL)) & (~(Board.white_pieces | Board.black_pieces));
+    return pawn_movement | pawn_attack;
+}
+uint64_t ChessBoard::generate_bpawn_movement(int square_index)
+{
+    pair rankfile_index = index_to_rankfile(square_index);
+    return 1ULL << min(square_index, square_index - 8) | ((rankfile_index.second == 1) ?  1ULL << (square_index + 16) : 0ULL) | ((1ULL << ((rankfile_index.first == 7 && !(rankfile_index.second == 0)) ? square_index - 9 : square_index) | 1ULL << ((rankfile_index.first == 0 && !(rankfile_index.second == 0)) ? square_index - 7 : square_index)) & (Board.white_pieces | Board.black_pieces));
+}
 
 uint64_t ChessBoard::generate_rook_movement(int square_index)
 {
@@ -188,8 +196,12 @@ uint64_t ChessBoard::generate_rook_movement(int square_index)
 
 uint64_t ChessBoard::generate_knight_movement(int index)
 {
-    uint64_t knights_pattern = 0x0000001221001221;
-    return 0ULL;
+    pair rankfile_index = index_to_rankfile(index);
+    uint64_t knights_pattern = 0x0000000A1100110A;
+    uint64_t mask_vertical = ((0x0707070707070707 << max(0, rankfile_index.first - 2)) | 0xE0E0E0E0E0E0E0E0 >> max(0, 5 - rankfile_index.first));
+    rankfile_index.first -= 2; rankfile_index.second -= 2;
+    int rankfile = rankfile_index.first + (rankfile_index.second * 8);
+    return ((rankfile > 0) ? knights_pattern << rankfile : knights_pattern >>  abs(rankfile)) & mask_vertical;
 }
 
 uint64_t ChessBoard::generate_bishop_movement(int square_index)
