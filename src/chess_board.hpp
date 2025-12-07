@@ -13,9 +13,11 @@ using namespace std;
 class ChessBoard: public godot::Node{
     GDCLASS(ChessBoard, Node)
     protected:
+        enum Color {
+            White, Black
+        };
         enum Pieces {
-            WPawn, WRook, WKnight, WBishop, WQueen, WKing,
-            BPawn, BRook, BKnight, BBishop, BQueen, BKing
+            Pawn, Rook, Knight, Bishop, Queen, King
         };
         const char* to_UCI[64] = {
             "h1", "g1", "f1", "e1", "d1", "c1", "b1", "a1",

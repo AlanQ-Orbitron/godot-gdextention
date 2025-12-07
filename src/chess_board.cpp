@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <string>
 #include <godot_cpp/variant/utility_functions.hpp>
-#include "godot_cpp/core/defs.hpp"
 #include "godot_cpp/variant/array.hpp"
 #include "godot_cpp/variant/string.hpp"
 #include <stdlib.h>
@@ -49,7 +48,7 @@ void ChessBoard::reset_board()
 
 Array ChessBoard::get_valid_moves()
 {
-    auto generate_attack_list = [this](uint64_t bitboard, int piece_type) {
+    auto generate_attack_list = [this](uint64_t bitboard, int color, int piece_type) {
         Array singular_pieces_attack_list;
         int square_index;
         int square_attack_index;
@@ -66,18 +65,18 @@ Array ChessBoard::get_valid_moves()
     Array chessmove_list;
     generate_moves();
 
-    chessmove_list.append_array(generate_attack_list(Board.pawns & Board.white_pieces, WPawn));
-    chessmove_list.append_array(generate_attack_list(Board.rooks & Board.white_pieces, WRook));
-    chessmove_list.append_array(generate_attack_list(Board.knights & Board.white_pieces, WKnight));
-    chessmove_list.append_array(generate_attack_list(Board.bishops & Board.white_pieces, WBishop));
-    chessmove_list.append_array(generate_attack_list(Board.queens & Board.white_pieces, WQueen));
-    chessmove_list.append_array(generate_attack_list(Board.kings & Board.white_pieces, WKing));
-    chessmove_list.append_array(generate_attack_list(Board.pawns & Board.black_pieces, BPawn));
-    chessmove_list.append_array(generate_attack_list(Board.rooks & Board.black_pieces, BRook));
-    chessmove_list.append_array(generate_attack_list(Board.knights & Board.black_pieces, BKnight));
-    chessmove_list.append_array(generate_attack_list(Board.bishops & Board.black_pieces, BBishop));
-    chessmove_list.append_array(generate_attack_list(Board.queens & Board.black_pieces, BQueen));
-    chessmove_list.append_array(generate_attack_list(Board.kings & Board.black_pieces, BKing));
+    chessmove_list.append_array(generate_attack_list(Board.pawns & Board.white_pieces, White, Pawn));
+    chessmove_list.append_array(generate_attack_list(Board.rooks & Board.white_pieces, White, Rook));
+    chessmove_list.append_array(generate_attack_list(Board.knights & Board.white_pieces, White, Knight));
+    chessmove_list.append_array(generate_attack_list(Board.bishops & Board.white_pieces, White, Bishop));
+    chessmove_list.append_array(generate_attack_list(Board.queens & Board.white_pieces, White, Queen));
+    chessmove_list.append_array(generate_attack_list(Board.kings & Board.white_pieces, White, King));
+    chessmove_list.append_array(generate_attack_list(Board.pawns & Board.black_pieces, Black, Pawn));
+    chessmove_list.append_array(generate_attack_list(Board.rooks & Board.black_pieces, Black, Rook));
+    chessmove_list.append_array(generate_attack_list(Board.knights & Board.black_pieces, Black, Knight));
+    chessmove_list.append_array(generate_attack_list(Board.bishops & Board.black_pieces, Black, Bishop));
+    chessmove_list.append_array(generate_attack_list(Board.queens & Board.black_pieces, Black, Queen));
+    chessmove_list.append_array(generate_attack_list(Board.kings & Board.black_pieces, Black, King));
     return chessmove_list;
 }
 
@@ -148,27 +147,27 @@ void ChessBoard::generate_board(String board)
 
 void ChessBoard::generate_moves()
 {
-    auto generate_attack_mask = [this](uint64_t bitboard, uint64_t color, int piece_type, MoveGenerator generate) {
+    auto generate_attack_mask = [this](uint64_t bitboard, uint64_t colors, int color, int piece_type, MoveGenerator generate) {
         int square_index;
-        uint64_t full = bitboard & color;
+        uint64_t full = bitboard & colors;
         while (full) {
             square_index = pop_least_significant(&full);
-            Board.attack_boards[square_index][piece_type] = (this->*generate)(square_index, 1 - (piece_type / 6)) & (~color);
+            Board.attack_boards[square_index][piece_type] = (this->*generate)(square_index, 1 - color) & (~colors);
         }
     };
     
-    generate_attack_mask(Board.pawns, Board.white_pieces, WPawn, move_generator[0]);
-    generate_attack_mask(Board.rooks, Board.white_pieces, WRook, move_generator[1]);
-    generate_attack_mask(Board.knights, Board.white_pieces, WKnight, move_generator[2]);
-    generate_attack_mask(Board.bishops, Board.white_pieces, WBishop, move_generator[3]);
-    generate_attack_mask(Board.queens, Board.white_pieces, WQueen, move_generator[4]);
-    generate_attack_mask(Board.kings, Board.white_pieces, WKing, move_generator[5]);
-    generate_attack_mask(Board.pawns, Board.black_pieces, BPawn, move_generator[0]);
-    generate_attack_mask(Board.rooks, Board.black_pieces, BRook, move_generator[1]);
-    generate_attack_mask(Board.knights, Board.black_pieces, BKnight, move_generator[2]);
-    generate_attack_mask(Board.bishops, Board.black_pieces, BBishop, move_generator[3]);
-    generate_attack_mask(Board.queens, Board.black_pieces, BQueen, move_generator[4]);
-    generate_attack_mask(Board.kings, Board.black_pieces, BKing, move_generator[5]);
+    generate_attack_mask(Board.pawns, Board.white_pieces, White, Pawn, move_generator[0]);
+    generate_attack_mask(Board.rooks, Board.white_pieces, White, Rook, move_generator[1]);
+    generate_attack_mask(Board.knights, Board.white_pieces, White, Knight, move_generator[2]);
+    generate_attack_mask(Board.bishops, Board.white_pieces, White, Bishop, move_generator[3]);
+    generate_attack_mask(Board.queens, Board.white_pieces, White, Queen, move_generator[4]);
+    generate_attack_mask(Board.kings, Board.white_pieces, White, King, move_generator[5]);
+    generate_attack_mask(Board.pawns, Board.black_pieces, Black, Pawn, move_generator[0]);
+    generate_attack_mask(Board.rooks, Board.black_pieces, Black, Rook, move_generator[1]);
+    generate_attack_mask(Board.knights, Board.black_pieces, Black, Knight, move_generator[2]);
+    generate_attack_mask(Board.bishops, Board.black_pieces, Black, Bishop, move_generator[3]);
+    generate_attack_mask(Board.queens, Board.black_pieces, Black, Queen, move_generator[4]);
+    generate_attack_mask(Board.kings, Board.black_pieces, Black, King, move_generator[5]);
        
 }
 
