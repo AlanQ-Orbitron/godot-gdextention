@@ -35,21 +35,16 @@ ChessBoard::MoveGenerator ChessBoard::move_generator[12] = {
 
 void ChessBoard::reset_board()
 {
-    Board.color[White] = 0ULL;
-    Board.color[Black] = 0ULL;
-    Board.pieces[Pawn] = 0ULL;
-    Board.pieces[Rook] = 0ULL;
-    Board.pieces[Knight] = 0ULL;
-    Board.pieces[Bishop] = 0ULL;
-    Board.pieces[Queen] = 0ULL;
-    Board.pieces[King] = 0ULL;
+    memset(Board.color, 0, sizeof(Board.color));
+    memset(Board.pieces, 0, sizeof(Board.pieces));
     memset(Board.attack_boards, 0, sizeof(Board.attack_boards));
 }
 
 Array ChessBoard::get_valid_moves()
 {
-    auto generate_attack_list = [this](uint64_t bitboard, int color, int piece) {
+    auto generate_attack_list = [this](int color, int piece) {
         Array singular_pieces_attack_list;
+        uint64_t bitboard = Board.color[color] & Board.pieces[piece];
         int square_index;
         int square_attack_index;
         while (bitboard) {
@@ -64,19 +59,11 @@ Array ChessBoard::get_valid_moves()
     };
     Array chessmove_list;
     generate_moves();
-
-    chessmove_list.append_array(generate_attack_list(Board.pieces[Pawn] & Board.color[White], White, Pawn));
-    chessmove_list.append_array(generate_attack_list(Board.pieces[Rook] & Board.color[White], White, Rook));
-    chessmove_list.append_array(generate_attack_list(Board.pieces[Knight] & Board.color[White], White, Knight));
-    chessmove_list.append_array(generate_attack_list(Board.pieces[Bishop] & Board.color[White], White, Bishop));
-    chessmove_list.append_array(generate_attack_list(Board.pieces[Queen] & Board.color[White], White, Queen));
-    chessmove_list.append_array(generate_attack_list(Board.pieces[King] & Board.color[White], White, King));
-    chessmove_list.append_array(generate_attack_list(Board.pieces[Pawn] & Board.color[Black], Black, Pawn));
-    chessmove_list.append_array(generate_attack_list(Board.pieces[Rook] & Board.color[Black], Black, Rook));
-    chessmove_list.append_array(generate_attack_list(Board.pieces[Knight] & Board.color[Black], Black, Knight));
-    chessmove_list.append_array(generate_attack_list(Board.pieces[Bishop] & Board.color[Black], Black, Bishop));
-    chessmove_list.append_array(generate_attack_list(Board.pieces[Queen] & Board.color[Black], Black, Queen));
-    chessmove_list.append_array(generate_attack_list(Board.pieces[King] & Board.color[Black], Black, King));
+    for (int color = 0; color < 2; color++) {
+        for (int piece = 0; piece < 6; piece++) {
+        chessmove_list.append_array(generate_attack_list(color, piece));
+        }
+    }
     return chessmove_list;
 }
 
@@ -134,41 +121,33 @@ uint64_t ChessBoard::mirrorHorizontal (uint64_t x)
 void ChessBoard::generate_board(String board)
 {
     ChessBoard::GameState fen_board = fen_to_bit(board);
-    Board.color[White] = fen_board.color[White];
-    Board.color[Black] = fen_board.color[Black];
-    Board.pieces[Pawn] = fen_board.pieces[Pawn];
-    Board.pieces[Rook] = fen_board.pieces[Rook];
-    Board.pieces[Knight] = fen_board.pieces[Knight];
-    Board.pieces[Bishop] = fen_board.pieces[Bishop];
-    Board.pieces[Queen] = fen_board.pieces[Queen];
-    Board.pieces[King] = fen_board.pieces[King];
+
+    for (int color = 0; color < 2; color++) {
+        Board.color[color] = fen_board.color[color];
+    }
+
+    for (int piece = 0; piece < 6; piece++) {
+        Board.pieces[piece] = fen_board.pieces[piece];
+    }
 }
 
 
 void ChessBoard::generate_moves()
 {
-    auto generate_attack_mask = [this](uint64_t bitboard, uint64_t colors, int color, int piece_type, MoveGenerator generate) {
+    auto generate_attack_mask = [this](int color, int pieces, MoveGenerator generate) {
         int square_index;
-        uint64_t full = bitboard & colors;
+        uint64_t full = Board.color[color] & Board.pieces[pieces];
         while (full) {
             square_index = pop_least_significant(&full);
-            Board.attack_boards[color][piece_type][square_index] = (this->*generate)(square_index, 1 - color) & (~colors);
+            Board.attack_boards[color][pieces][square_index] = (this->*generate)(square_index, 1 - color) & (~Board.color[color]);
         }
     };
     
-    generate_attack_mask(Board.pieces[Pawn], Board.color[White], White, Pawn, move_generator[0]);
-    generate_attack_mask(Board.pieces[Rook], Board.color[White], White, Rook, move_generator[1]);
-    generate_attack_mask(Board.pieces[Knight], Board.color[White], White, Knight, move_generator[2]);
-    generate_attack_mask(Board.pieces[Bishop], Board.color[White], White, Bishop, move_generator[3]);
-    generate_attack_mask(Board.pieces[Queen], Board.color[White], White, Queen, move_generator[4]);
-    generate_attack_mask(Board.pieces[King], Board.color[White], White, King, move_generator[5]);
-    generate_attack_mask(Board.pieces[Pawn], Board.color[Black], Black, Pawn, move_generator[0]);
-    generate_attack_mask(Board.pieces[Rook], Board.color[Black], Black, Rook, move_generator[1]);
-    generate_attack_mask(Board.pieces[Knight], Board.color[Black], Black, Knight, move_generator[2]);
-    generate_attack_mask(Board.pieces[Bishop], Board.color[Black], Black, Bishop, move_generator[3]);
-    generate_attack_mask(Board.pieces[Queen], Board.color[Black], Black, Queen, move_generator[4]);
-    generate_attack_mask(Board.pieces[King], Board.color[Black], Black, King, move_generator[5]);
-       
+    for (int color = 0; color < 2; color++) {
+        for (int piece = 0; piece < 6; piece++) {
+        generate_attack_mask(color, piece, move_generator[piece]);
+        }
+    }
 }
 
 uint64_t ChessBoard::generate_h_quintessence(int square_index, uint64_t mask) // Stollen from https://www.chessprogramming.org/Hyperbola_Quintessence
