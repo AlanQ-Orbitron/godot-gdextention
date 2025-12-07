@@ -17,7 +17,7 @@ class ChessBoard: public godot::Node{
             White, Black
         };
         enum Pieces {
-            Pawn, Rook, Knight, Bishop, Queen, King
+            Pawn, Rook, Knight, Bishop, Queen, King, EnPassant
         };
         const char* to_UCI[64] = {
             "h1", "g1", "f1", "e1", "d1", "c1", "b1", "a1",
@@ -31,16 +31,9 @@ class ChessBoard: public godot::Node{
         };
         struct GameState {
         // Bitboards
-            uint64_t white_pieces;
-            uint64_t black_pieces;
-            uint64_t pawns;
-            uint64_t rooks;
-            uint64_t knights;
-            uint64_t bishops;
-            uint64_t queens;
-            uint64_t kings;
-            uint64_t en_passant;
-            uint64_t attack_boards[64][12];
+            uint64_t color[2];
+            uint64_t pieces[6];
+            uint64_t attack_boards[2][6][64];
 
             // States
             uint8_t castling;
@@ -73,27 +66,30 @@ class ChessBoard: public godot::Node{
         }
     private:
         void set_board(godot::Dictionary board) {
-            Board.white_pieces = board["white_pieces"];
-            Board.black_pieces = board["black_pieces"];
-            Board.pawns = board["pawns"];
-            Board.rooks = board["rooks"];
-            Board.knights = board["knights"];
-            Board.bishops = board["bishops"];
-            Board.queens = board["queens"];
-            Board.kings = board["kings"];
+            Board.color[White] = board["white_pieces"];
+            Board.color[Black] = board["black_pieces"];
+            Board.pieces[Pawn] = board["pawns"];
+            Board.pieces[Rook] = board["rooks"];
+            Board.pieces[Knight] = board["knights"];
+            Board.pieces[Bishop] = board["bishops"];
+            Board.pieces[Queen] = board["queens"];
+            Board.pieces[King] = board["kings"];
         };
         godot::Dictionary get_board() const {
             godot::Dictionary board;
-            board["white_pieces"] = Board.white_pieces;
-            board["black_pieces"] = Board.black_pieces;
-            board["pawns"] = Board.pawns;
-            board["rooks"] = Board.rooks;
-            board["knights"] = Board.knights;
-            board["bishops"] = Board.bishops;
-            board["queens"] = Board.queens;
-            board["kings"] = Board.kings;
+            board["white_pieces"] = Board.color[White];
+            board["black_pieces"] = Board.color[Black];
+            board["pawns"] = Board.pieces[Pawn];
+            board["rooks"] = Board.pieces[Rook];
+            board["knights"] = Board.pieces[Knight];
+            board["bishops"] = Board.pieces[Bishop];
+            board["queens"] = Board.pieces[Queen];
+            board["kings"] = Board.pieces[King];
             return board;
         };
+        using MoveGenerator = uint64_t (ChessBoard::*)(int, bool);
+
+        static MoveGenerator move_generator[12];
         uint64_t generate_h_quintessence(int square_index, uint64_t mask);
         uint64_t generate_pawn_movement(int square_index, bool is_white);
         uint64_t generate_wpawn_movement(int square_index);
@@ -103,8 +99,4 @@ class ChessBoard: public godot::Node{
         uint64_t generate_bishop_movement(int square_index, bool = true);
         uint64_t generate_queen_movement(int square_index, bool = true);
         uint64_t generate_king_movement(int square_index, bool = true);
-
-        using MoveGenerator = uint64_t (ChessBoard::*)(int, bool);
-
-        static MoveGenerator move_generator[12];
 };
